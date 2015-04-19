@@ -1,272 +1,248 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
-<script src="./js/d3.layout.cloud.js"></script>
-<script src='http://code.jquery.com/jquery-1.9.1.js' type='text/javascript'></script>
-<script>
-
-var fill = d3.scale.category20();
-  var data = [];
-
-var width = $(window).width();// * 0.7; // $(document).width()
-var height = $(window).height();// * 0.8;
-
-var color = d3.scale.linear()
-            .domain([0,1,2,3,4,5,6,10,15,20,100])
-            .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
-
-d3.layout.cloud().size([width, height])
-      .words(data.map(function(d) {
-        return {text: d.word, size: d.size};
-      }))
-      .padding(5)
-      .rotate(function() { return ~~(Math.random() * 2) * 90; })
-      .font("Impact")
-      .fontSize(function(d) { return d.size; })
-      .on("end", draw)
-      .start();
-
-  function draw(words) {
-      var w = parseInt(width/2, 10);
-      var h = parseInt(height/2, 10);
-
-      d3.select("body").append("svg")
-        .attr("width", width-10)
-        .attr("height", height-10)
-      .append("g")
-        .attr("transform", "translate(" + w.toString() + "," + h.toString() + ")")
-      .selectAll("text")
-        .data(words)
-      .enter().append("text")
-        .style("font-size", function(d) { return d.size + "px"; })
-        .style("font-family", "Impact")
-        .style("fill", function(d, i) { return fill(i); })
-        .attr("text-anchor", "middle")
-        .attr("transform", function(d) {
-
-          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-        })
-        .text(function(d) { return d.text; });
-  }
-  function drawUpdate(words){
-   d3.layout.cloud().size([width, height])
-      .words(words)
-      .padding(5)
-      .rotate(function() { return ~~(Math.random() * 2) * 90; })
-      .font("Impact")
-      .fontSize(function(d) { return d.size; })
-      .start();
-
-
-      var w = parseInt(width/2, 10);
-      var h = parseInt(height/2, 10);
-
-      d3.select("svg")
-      .selectAll("g")
-        .attr("transform", "translate(" + w.toString() + "," + h.toString() + ")")
-      .selectAll("text")
-        .data(words).enter().append("text")
-        .style("font-size", function(d) { return d.size + "px"; })
-        .style("font-family", "Impact")
-        //.style("fill", function(d, i) { return fill(i); })
-        .style("fill", function(d, i) { return color(i); })
-        .attr("transform", function(d) {
-          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-        })
-        .text(function(d) { return d.text; });
-
-
-
-  }
-
-  //setInterval(function () { 
-  //      var d_new = data;
-  //      d_new.push({word:randomWord(),weight:randomWeight()});
-
-  //       drawUpdate(d_new.map(function(d) {
-  //      return {text: d.word, size: d.weight};
-  //    }));
-  //    }, 1500);
-
-  function randomWord() {
-          var text = "";
-          var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-          for( var i=0; i < 5; i++ )
-              text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-          return text;
-      }
-      function randomWeight(){
-        var r = Math.round(Math.random() * 100);
-        return r;
-      }
-
-var map;
-var wsURL = "ws://62.116.54.218:8080/sock";
-var circleHash = {};
-
-document.addEventListener("DOMContentLoaded", function(event) {
-  var sock = new ReconnectingWebSocket(wsURL);
-});
-
-// reference: https://github.com/joewalnes/reconnecting-websocket/
-function ReconnectingWebSocket(url, protocols) {
-    protocols = protocols || [];
-
-    // These can be altered by calling code.
-    this.debug = false;
-    this.reconnectInterval = 1000;
-    this.timeoutInterval = 2000;
-
-    var self = this;
-    var ws;
-    var forcedClose = false;
-    var timedOut = false;
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+  <script src="./js/d3.layout.cloud.js"></script>
+  <script src='http://code.jquery.com/jquery-1.9.1.js' type='text/javascript'></script>
+  <script>
+    var fill = d3.scale.category20();
+    var data = [];
     
-    this.url = url;
-    this.protocols = protocols;
-    this.readyState = WebSocket.CONNECTING;
-    this.URL = url; // Public API
-
-    this.onopen = function(event) {
-    };
-
-    this.onclose = function(event) {
-    };
-
-    this.onconnecting = function(event) {
-    };
-
-    this.onmessage = function(event) {
-      receiveData(event.data);
-    };
-
-    this.onerror = function(event) {
-    };
-
-    function connect(reconnectAttempt) {
-        ws = new WebSocket(url, protocols);
+    var width = $(window).width();
+    var height = $(window).height();
+    
+    var color = d3.scale.linear()
+                .domain([0,1,2,3,4,5,6,10,15,20,100])
+                .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
+    
+    d3.layout.cloud().size([width, height])
+          .words(data.map(function(d) {
+            return {text: d.word, size: d.size};
+          }))
+          .padding(5)
+          .rotate(function() { return ~~(Math.random() * 2) * 90; })
+          .font("Impact")
+          .fontSize(function(d) { return d.size; })
+          .on("end", draw)
+          .start();
+    
+      function draw(words) {
+          var w = parseInt(width/2, 10);
+          var h = parseInt(height/2, 10);
+    
+          d3.select("body").append("svg")
+            .attr("width", width-10)
+            .attr("height", height-10)
+          .append("g")
+            .attr("transform", "translate(" + w.toString() + "," + h.toString() + ")")
+          .selectAll("text")
+            .data(words)
+          .enter().append("text")
+            .style("font-size", function(d) { return d.size + "px"; })
+            .style("font-family", "Impact")
+            .style("fill", function(d, i) { return fill(i); })
+            .attr("text-anchor", "middle")
+            .attr("transform", function(d) {
+    
+              return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            })
+            .text(function(d) { return d.text; });
+      }
+      function drawUpdate(words){
+       d3.layout.cloud().size([width, height])
+          .words(words)
+          .padding(5)
+          .rotate(function() { return ~~(Math.random() * 2) * 90; })
+          .font("Impact")
+          .fontSize(function(d) { return d.size; })
+          .start();
+    
+    
+          var w = parseInt(width/2, 10);
+          var h = parseInt(height/2, 10);
+    
+          d3.select("svg")
+          .selectAll("g")
+            .attr("transform", "translate(" + w.toString() + "," + h.toString() + ")")
+          .selectAll("text")
+            .data(words).enter().append("text")
+            .style("font-size", function(d) { return d.size + "px"; })
+            .style("font-family", "Impact")
+            //.style("fill", function(d, i) { return fill(i); })
+            .style("fill", function(d, i) { return color(i); })
+            .attr("transform", function(d) {
+              return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            })
+            .text(function(d) { return d.text; });
+    
+    
+    
+      }
+    
+    var map;
+    var wsURL = "ws://62.116.54.218:8080/sock";
+    var circleHash = {};
+    
+    document.addEventListener("DOMContentLoaded", function(event) {
+      var sock = new ReconnectingWebSocket(wsURL);
+    });
+    
+    // reference: https://github.com/joewalnes/reconnecting-websocket/
+    function ReconnectingWebSocket(url, protocols) {
+        protocols = protocols || [];
+    
+        // These can be altered by calling code.
+        this.debug = false;
+        this.reconnectInterval = 1000;
+        this.timeoutInterval = 2000;
+    
+        var self = this;
+        var ws;
+        var forcedClose = false;
+        var timedOut = false;
         
-        self.onconnecting();
-        if (self.debug || ReconnectingWebSocket.debugAll) {
-            console.debug('ReconnectingWebSocket', 'attempt-connect', url);
-        }
-        
-        var localWs = ws;
-        var timeout = setTimeout(function() {
-            if (self.debug || ReconnectingWebSocket.debugAll) {
-                console.debug('ReconnectingWebSocket', 'connection-timeout', url);
-            }
-            timedOut = true;
-            localWs.close();
-            timedOut = false;
-        }, self.timeoutInterval);
-        
-        ws.onopen = function(event) {
-            clearTimeout(timeout);
-            if (self.debug || ReconnectingWebSocket.debugAll) {
-                console.debug('ReconnectingWebSocket', 'onopen', url);
-            }
-            self.readyState = WebSocket.OPEN;
-            reconnectAttempt = false;
-            self.onopen(event);
+        this.url = url;
+        this.protocols = protocols;
+        this.readyState = WebSocket.CONNECTING;
+        this.URL = url; // Public API
+    
+        this.onopen = function(event) {
         };
-        
-        ws.onclose = function(event) {
-            clearTimeout(timeout);
-            ws = null;
-            if (forcedClose) {
-                self.readyState = WebSocket.CLOSED;
-                self.onclose(event);
-            } else {
-                self.readyState = WebSocket.CONNECTING;
-                self.onconnecting();
-                if (!reconnectAttempt && !timedOut) {
-                    if (self.debug || ReconnectingWebSocket.debugAll) {
-                        console.debug('ReconnectingWebSocket', 'onclose', url);
-                    }
-                    self.onclose(event);
+    
+        this.onclose = function(event) {
+        };
+    
+        this.onconnecting = function(event) {
+        };
+    
+        this.onmessage = function(event) {
+          receiveData(event.data);
+        };
+    
+        this.onerror = function(event) {
+        };
+    
+        function connect(reconnectAttempt) {
+            ws = new WebSocket(url, protocols);
+            
+            self.onconnecting();
+            if (self.debug || ReconnectingWebSocket.debugAll) {
+                console.debug('ReconnectingWebSocket', 'attempt-connect', url);
+            }
+            
+            var localWs = ws;
+            var timeout = setTimeout(function() {
+                if (self.debug || ReconnectingWebSocket.debugAll) {
+                    console.debug('ReconnectingWebSocket', 'connection-timeout', url);
                 }
-                setTimeout(function() {
-                    connect(true);
-                }, self.reconnectInterval);
+                timedOut = true;
+                localWs.close();
+                timedOut = false;
+            }, self.timeoutInterval);
+            
+            ws.onopen = function(event) {
+                clearTimeout(timeout);
+                if (self.debug || ReconnectingWebSocket.debugAll) {
+                    console.debug('ReconnectingWebSocket', 'onopen', url);
+                }
+                self.readyState = WebSocket.OPEN;
+                reconnectAttempt = false;
+                self.onopen(event);
+            };
+            
+            ws.onclose = function(event) {
+                clearTimeout(timeout);
+                ws = null;
+                if (forcedClose) {
+                    self.readyState = WebSocket.CLOSED;
+                    self.onclose(event);
+                } else {
+                    self.readyState = WebSocket.CONNECTING;
+                    self.onconnecting();
+                    if (!reconnectAttempt && !timedOut) {
+                        if (self.debug || ReconnectingWebSocket.debugAll) {
+                            console.debug('ReconnectingWebSocket', 'onclose', url);
+                        }
+                        self.onclose(event);
+                    }
+                    setTimeout(function() {
+                        connect(true);
+                    }, self.reconnectInterval);
+                }
+            };
+            ws.onmessage = function(event) {
+                if (self.debug || ReconnectingWebSocket.debugAll) {
+                    console.debug('ReconnectingWebSocket', 'onmessage', url, event.data);
+                }
+              self.onmessage(event);
+            };
+            ws.onerror = function(event) {
+                if (self.debug || ReconnectingWebSocket.debugAll) {
+                    console.debug('ReconnectingWebSocket', 'onerror', url, event);
+                }
+                self.onerror(event);
+            };
+        }
+        connect(url);
+    
+        this.send = function(data) {
+            if (ws) {
+                if (self.debug || ReconnectingWebSocket.debugAll) {
+                    console.debug('ReconnectingWebSocket', 'send', url, data);
+                }
+                return ws.send(data);
+            } else {
+                throw 'INVALID_STATE_ERR : Pausing to reconnect websocket';
             }
         };
-        ws.onmessage = function(event) {
-            if (self.debug || ReconnectingWebSocket.debugAll) {
-                console.debug('ReconnectingWebSocket', 'onmessage', url, event.data);
+    
+        this.close = function() {
+            forcedClose = true;
+            if (ws) {
+                ws.close();
             }
-          self.onmessage(event);
         };
-        ws.onerror = function(event) {
-            if (self.debug || ReconnectingWebSocket.debugAll) {
-                console.debug('ReconnectingWebSocket', 'onerror', url, event);
+    
+        /**
+         * Additional public API method to refresh the connection if still open (close, re-open).
+         * For example, if the app suspects bad data / missed heart beats, it can try to refresh.
+         */
+        this.refresh = function() {
+            if (ws) {
+                ws.close();
             }
-            self.onerror(event);
         };
     }
-    connect(url);
-
-    this.send = function(data) {
-        if (ws) {
-            if (self.debug || ReconnectingWebSocket.debugAll) {
-                console.debug('ReconnectingWebSocket', 'send', url, data);
-            }
-            return ws.send(data);
-        } else {
-            throw 'INVALID_STATE_ERR : Pausing to reconnect websocket';
-        }
-    };
-
-    this.close = function() {
-        forcedClose = true;
-        if (ws) {
-            ws.close();
-        }
-    };
-
+    
     /**
-     * Additional public API method to refresh the connection if still open (close, re-open).
-     * For example, if the app suspects bad data / missed heart beats, it can try to refresh.
+     * Setting this to true is the equivalent of setting all instances of ReconnectingWebSocket.debug to true.
      */
-    this.refresh = function() {
-        if (ws) {
-            ws.close();
+    ReconnectingWebSocket.debugAll = false;
+    
+    function updateData(newWord) {
+      var found = false;
+    
+      for(var i = 0; i < data.length; i++) {
+        if (data[i].word == newWord) {
+          data[i].size++;
+          found = true;
+          break;
         }
-    };
-}
-
-/**
- * Setting this to true is the equivalent of setting all instances of ReconnectingWebSocket.debug to true.
- */
-ReconnectingWebSocket.debugAll = false;
-
-function updateData(newWord) {
-  var found = false;
-
-  for(var i = 0; i < data.length; i++) {
-    if (data[i].word == newWord) {
-      data[i].size++;
-      found = true;
-      break;
+      }
+    
+      if (!found) {
+         data.push({word:newWord, size:20}); 
+      }
+    
+      drawUpdate(data.map(function(d) {
+        return {text: d.word, size: d.size};
+      }));
     }
-  }
-
-  if (!found) {
-     data.push({word:newWord, size:20}); 
-  }
-
-  drawUpdate(data.map(function(d) {
-    return {text: d.word, size: d.size};
-  }));
-}
-
-function receiveData(newWord) {
-  if(newWord.length > 0) {
-      updateData(newWord);
-  }
-}
-
-</script>
+    
+    function receiveData(newWord) {
+      if(newWord.length > 0) {
+          updateData(newWord);
+      }
+    }
+    
+  </script>
