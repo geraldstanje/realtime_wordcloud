@@ -16,8 +16,8 @@
                 .range(["#ddd", "#ccc", "#bbb", "#aaa", "#999", "#888", "#777", "#666", "#555", "#444", "#333", "#222"]);
     
     d3.layout.cloud().size([width, height])
-          .words(data.map(function(d) {
-            return {text: d.word, size: d.size};
+          .words(Object.keys(data).map(function(d) {
+            return {text: d, size: data[d]};
           }))
           .padding(5)
           .rotate(function() { return ~~(Math.random() * 2) * 90; })
@@ -48,6 +48,7 @@
             })
             .text(function(d) { return d.text; });
       }
+      
       function drawUpdate(words){
        d3.layout.cloud().size([width, height])
           .words(words)
@@ -56,7 +57,6 @@
           .font("Impact")
           .fontSize(function(d) { return d.size; })
           .start();
-    
     
           var w = parseInt(width/2, 10);
           var h = parseInt(height/2, 10);
@@ -74,9 +74,6 @@
               return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
             })
             .text(function(d) { return d.text; });
-    
-    
-    
       }
     
     var map;
@@ -220,29 +217,17 @@
     ReconnectingWebSocket.debugAll = false;
     
     function updateData(newWord) {
-      var found = false;
-    
-      //for(var i = 0; i < data.length; i++) {
-      //  if (data[i].word == newWord) {
-      //    data[i].size++;
-      //    found = true;
-      //    break;
-      //  }
-      //}
+      console.log(Object.keys(data).length);
 
-      if word in data {
-        data[word]++;
+      if (newWord in data) {
+        data[newWord]++;
       }
       else {
-        data.push({word:newWord, size:20});
+        data[newWord] = 20;
       }
-    
-      //if (!found) {
-      //   data.push({word:newWord, size:20}); 
-      //}
-    
+
       drawUpdate(Object.keys(data).map(function(d) {
-        return {text: d.word, size: d.size};
+        return {text: d, size: data[d]};
       }));
     }
     
