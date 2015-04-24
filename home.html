@@ -6,7 +6,7 @@
   <script src='http://code.jquery.com/jquery-1.9.1.js' type='text/javascript'></script>
   <script>
     var fill = d3.scale.category20();
-    var data = [];
+    var data = {};
     
     var width = $(window).width();
     var height = $(window).height();
@@ -222,19 +222,26 @@
     function updateData(newWord) {
       var found = false;
     
-      for(var i = 0; i < data.length; i++) {
-        if (data[i].word == newWord) {
-          data[i].size++;
-          found = true;
-          break;
-        }
+      //for(var i = 0; i < data.length; i++) {
+      //  if (data[i].word == newWord) {
+      //    data[i].size++;
+      //    found = true;
+      //    break;
+      //  }
+      //}
+
+      if word in data {
+        data[word]++;
+      }
+      else {
+        data.push({word:newWord, size:20});
       }
     
-      if (!found) {
-         data.push({word:newWord, size:20}); 
-      }
+      //if (!found) {
+      //   data.push({word:newWord, size:20}); 
+      //}
     
-      drawUpdate(data.map(function(d) {
+      drawUpdate(Object.keys(data).map(function(d) {
         return {text: d.word, size: d.size};
       }));
     }
