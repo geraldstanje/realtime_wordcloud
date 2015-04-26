@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"code.google.com/p/go.net/websocket"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -17,6 +18,7 @@ import (
 const debug = false
 const errorCounterMax = 3
 const DeployTo = Boot2Docker
+const updateCountMax = 10
 
 const (
 	AWSWithDocker = iota
@@ -36,16 +38,13 @@ type WordCloud struct {
 	IPAddress     string
 	Port          string
 	errChan       chan error
+	wordFreq      map[string]int
 }
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+var corpus = [...]string{"the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at"}
 
-func randSeq(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(b)
+func randWord() string {
+	return corpus[rand.Intn(len(corpus))]
 }
 
 func (rt *WordCloud) changeIPAddressInFile(filename string, newStr string) error {
@@ -84,33 +83,42 @@ func HomeHandler(response http.ResponseWriter, request *http.Request) {
 
 func (rt *WordCloud) broadcastData() {
 	var Message = websocket.Message
-	var err error
 	word_count := 0
+	updateCount := 0
 
 	for {
-		str := randSeq(10)
+		str := randWord()
+		rt.wordFreq[str]++
 
-		for ip, _ := range rt.activeClients {
-			if err = Message.Send(rt.activeClients[ip].websocket, str); err != nil {
-				// we could not send the message to a peer
-				log.Println("Could not send message to ", ip, err.Error())
+		updateCount++
+		if updateCount == updateCountMax {
+			updateCount = 0
 
-				// work-around: https://code.google.com/p/go/issues/detail?id=3117
-				var tmp = rt.activeClients[ip]
-				tmp.errorCount += 1
-				rt.activeClients[ip] = tmp
+			j, err := json.Marshal(rt.wordFreq)
+			if err == nil {
+				for ip, _ := range rt.activeClients {
+					if err = Message.Send(rt.activeClients[ip].websocket, string(j)); err != nil {
+						// we could not send the message to a peer
+						log.Println("Could not send message to ", ip, err.Error())
 
-				if rt.activeClients[ip].errorCount >= errorCounterMax {
-					log.Println("Client disconnected:", ip)
-					delete(rt.activeClients, ip)
+						// work-around: https://code.google.com/p/go/issues/detail?id=3117
+						var tmp = rt.activeClients[ip]
+						tmp.errorCount += 1
+						rt.activeClients[ip] = tmp
+
+						if rt.activeClients[ip].errorCount >= errorCounterMax {
+							log.Println("Client disconnected:", ip)
+							delete(rt.activeClients, ip)
+						}
+					}
 				}
+
+				word_count += 1
+				fmt.Println(word_count)
 			}
 		}
 
-		word_count += 1
-		fmt.Println(word_count)
-
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(300 * time.Millisecond)
 	}
 }
 
@@ -147,6 +155,7 @@ func NewWordCloud() *WordCloud {
 	rt := WordCloud{}
 	rt.errChan = make(chan error) // unbuffered channel
 	rt.activeClients = make(map[string]Client)
+	rt.wordFreq = make(map[string]int)
 	rand.Seed(time.Now().UTC().UnixNano())
 	return &rt
 }
